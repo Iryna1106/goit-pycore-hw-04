@@ -1,39 +1,60 @@
 import sys
 from pathlib import Path
-from colorama import init, Fore, Style, Back
+from colorama import Fore
 
-# Ініціалізація бібліотеки colorama для підтримки кольорового виведення
-init(autoreset=True)
-
-def print_directory_structure(directory, indent=""):
+def main():
+    # check required argument
     try:
-        # Перевірка, чи шлях є директорією
-        if not directory.is_dir():
-            print(f"{directory} не є директорією або не існує.")
-            return
-        
-        # Отримуємо всі файли та папки в поточній директорії
-        for path in directory.iterdir():
-            if path.is_dir():
-                # Виводимо папку з іншим кольором
-                print(f"{indent}{Fore.BLUE}{path.name}/")
-                # Рекурсивно виводимо вміст піддиректорій
-                print_directory_structure(path, indent + "    ")
-            else:
-                # Виводимо файли
-                print(f"{indent}{Fore.GREEN}{path.name}")
-    
-    except Exception as e:
-        print(f"Виникла помилка: {e}")
+        path_string = sys.argv[1]
+    except IndexError:
+        exit_with_error('Give directory path as argument')
 
-if __name__ == "__main__":
-    # Перевіряємо, чи було передано аргумент командного рядка
-    if len(sys.argv) != 2:
-        print("Використання: python script.py <шлях до директорії>")
-        sys.exit(1)
+    # create Path object
+    path_object = Path(path_string)
+    if not path_object.exists():
+        exit_with_error('No such directory')
     
-    # Отримуємо шлях до директорії з аргументів командного рядка
-    directory_path = Path(sys.argv[1])
+    if not path_object.is_dir():
+        exit_with_error('Path not for directory')
 
-    # Викликаємо функцію для відображення структури директорії
-    print_directory_structure(directory_path)
+    # analyze and output structure
+    structure_dictionary = build_structure(path_object)
+    output_structure(structure_dictionary)
+
+def build_structure(path: Path):
+    result = {}
+    items = list(path.iterdir())
+
+    for item in items:
+        if item.is_dir():
+            # recursion if item directory
+            inside = build_structure(item)
+        else:
+            inside = False
+        block = {item.name : inside}
+        result.update(block)
+
+    return result
+
+def output_structure(structure: dict, indent=''):
+    for name in structure:
+        prep_name = indent + name
+        if type(structure[name]) is dict:
+            print_dir(prep_name)
+            output_structure(structure[name], indent + '    ')
+        else:
+            print_file(prep_name)
+
+def print_dir(name: str):
+    print(Fore.CYAN + name + '/')
+
+def print_file(name: str):
+    print(Fore.GREEN + name)
+
+def exit_with_error(error: str):
+    print('Error:', error)
+    exit()
+
+if __name__ == '__main__':
+    main()
+  
