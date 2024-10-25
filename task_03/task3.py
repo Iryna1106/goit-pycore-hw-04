@@ -3,13 +3,13 @@ from pathlib import Path
 from colorama import Fore
 
 def main():
-    # check required argument
+   
     try:
         path_string = sys.argv[1]
     except IndexError:
         exit_with_error('Give directory path as argument')
 
-    # create Path object
+   
     path_object = Path(path_string)
     if not path_object.exists():
         exit_with_error('No such directory')
@@ -17,7 +17,7 @@ def main():
     if not path_object.is_dir():
         exit_with_error('Path not for directory')
 
-    # analyze and output structure
+    
     structure_dictionary = build_structure(path_object)
     output_structure(structure_dictionary)
 
@@ -27,7 +27,7 @@ def build_structure(path: Path):
 
     for item in items:
         if item.is_dir():
-            # recursion if item directory
+           
             inside = build_structure(item)
         else:
             inside = False
@@ -57,4 +57,3 @@ def exit_with_error(error: str):
 
 if __name__ == '__main__':
     main()
-  
